@@ -22,6 +22,27 @@ db.connect((err) => {
   console.log('Connected to the database');
 });
 
+const asciiArt = `
+#######                                                 
+#       #    # #####  #       ####  #   # ###### ###### 
+#       ##  ## #    # #      #    #  # #  #      #      
+#####   # ## # #    # #      #    #   #   #####  #####  
+#       #    # #####  #      #    #   #   #      #      
+#       #    # #      #      #    #   #   #      #      
+####### #    # #      ######  ####    #   ###### ###### 
+                                                        
+#######                                           
+   #    #####    ##    ####  #    # ###### #####  
+   #    #    #  #  #  #    # #   #  #      #    # 
+   #    #    # #    # #      ####   #####  #    # 
+   #    #####  ###### #      #  #   #      #####  
+   #    #   #  #    # #    # #   #  #      #   #  
+   #    #    # #    #  ####  #    # ###### #    # 
+`;
+
+console.log('\x1b[36m%s\x1b[0m', asciiArt);
+console.log('Welcome to Employee Tracker!\n');
+
 // Function to start the application
 const start = () => {
   inquirer
