@@ -2,6 +2,7 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const consoleTable = require("console.table");
+const queries = require("./src/queries");
 require("dotenv").config();
 
 // Connect to database
@@ -82,9 +83,11 @@ const start = () => {
 
 // Function to view all departments
 const viewAllDepartments = () => {
-  const query = "SELECT * FROM department ORDER BY id";
+  const query = queries.viewAllDepartments;
   db.query(query, (err, res) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching departments:', err.message);
+    };
     console.log("");
     console.log("");
     console.table(res);
@@ -94,10 +97,11 @@ const viewAllDepartments = () => {
 
 // Function to view all roles
 const viewAllRoles = () => {
-  const query =
-    "SELECT role.id, role.title, department.name AS department, ROUND(role.salary) AS salary FROM role JOIN department ON role.department_id = department.id ORDER BY role.id";
+  const query = queries.viewAllRoles;
   db.query(query, (err, res) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching roles:', err.message);
+    };
     console.log("");
     console.log("");
     console.table(res);
@@ -107,10 +111,11 @@ const viewAllRoles = () => {
 
 // Function to view all employees
 const viewAllEmployees = () => {
-  const query =
-    "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, ROUND(role.salary) AS salary, CONCAT(mgr.first_name, ' ', mgr.last_name) AS manager FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT JOIN employee AS mgr ON employee.manager_id = mgr.id ORDER BY employee.id";
+  const query = queries.viewAllEmployees;
   db.query(query, (err, res) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching employees:', err.message);
+    };
     console.log("");
     console.log("");
     console.table(res);
@@ -127,9 +132,13 @@ const addDepartment = () => {
       message: "What is the name of the department?",
     })
     .then((answer) => {
-      const query = "INSERT INTO department SET ?";
+      const query = queries.addDepartment;
       db.query(query, { name: answer.department }, (err, res) => {
-        if (err) throw err;
+        if (err) {
+          console.error('Error inserting department:', err.message);
+          start();
+          return;
+        }
         console.log(`Added ${answer.department} to the database`);
         start();
       });
@@ -139,9 +148,13 @@ const addDepartment = () => {
 // Function to add a role
 const addRole = () => {
   //Fetch all departments from department table
-  const query = "SELECT * FROM department";
+  const query = queries.viewAllDepartmentsSimple;
   db.query(query, (err, departments) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching departments:', err.message);
+      start();
+          return;
+        }
 
     //Create a list of department choices
     const departmentChoices = departments.map((department) => ({
@@ -169,7 +182,7 @@ const addRole = () => {
         },
       ])
       .then((answer) => {
-        const insertQuery = "INSERT INTO role SET ?";
+        const insertQuery = queries.addRole;
         db.query(
           insertQuery,
           {
@@ -178,7 +191,11 @@ const addRole = () => {
             department_id: answer.department_id,
           },
           (err, res) => {
-            if (err) throw err;
+            if (err) {
+              console.error('Error inserting role:', err.message);
+              start();
+              return;
+            }
             console.log(`Added ${answer.title} to the database`);
             start();
           }
@@ -190,9 +207,13 @@ const addRole = () => {
 // Function to add an employee
 const addEmployee = () => {
   //Fetch all roles from role table
-  const roleQuery = "SELECT * FROM role";
+  const roleQuery = queries.viewAllRolesSimple;
   db.query(roleQuery, (err, roles) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching roles:', err.message);
+      start();
+          return;
+    }
 
     //Create a list of role choices
     const roleChoices = roles.map((role) => ({
@@ -201,9 +222,13 @@ const addEmployee = () => {
     }));
 
     //Fetch all employees from employee table
-    const managerQuery = "SELECT * FROM employee";
+    const managerQuery = queries.viewAllEmployeesSimple;
     db.query(managerQuery, (err, employees) => {
-      if (err) throw err;
+      if (err) {
+        console.error('Error fetching employees:', err.message);
+        start();
+          return;
+      }
 
       //Create a list of manager choices
       const managerChoices = [
@@ -240,7 +265,7 @@ const addEmployee = () => {
           },
         ])
         .then((answer) => {
-          const query = "INSERT INTO employee SET ?";
+          const query = queries.addEmployee;
           db.query(
             query,
             {
@@ -250,7 +275,11 @@ const addEmployee = () => {
               manager_id: answer.manager_id,
             },
             (err, res) => {
-              if (err) throw err;
+              if (err) {
+                console.error('Error adding employee:', err.message);
+                start();
+                return;
+              }
               console.log(
                 `Added ${answer.first_name} ${answer.last_name} to the database`
               );
@@ -265,9 +294,13 @@ const addEmployee = () => {
 // Function to update an employee role
 const updateEmployeeRole = () => {
   // Fetch the list of employees
-  const employeeQuery = "SELECT * FROM employee";
+  const employeeQuery = queries.viewAllEmployeesSimple;
   db.query(employeeQuery, (err, employees) => {
-    if (err) throw err;
+    if (err) {
+      console.error('Error fetching employees:', err.message);
+      start();
+          return;
+    }
 
     // Create a list of employee choices
     const employeeChoices = employees.map((employee) => ({
@@ -276,9 +309,13 @@ const updateEmployeeRole = () => {
     }));
 
     // Fetch the list of roles
-    const roleQuery = "SELECT * FROM role";
+    const roleQuery = queries.viewAllRolesSimple;
     db.query(roleQuery, (err, roles) => {
-      if (err) throw err;
+      if (err) {
+        console.error('Error fetching roles:', err.message);
+        start();
+          return;
+      }
 
       // Create a list of role choices
       const roleChoices = roles.map((role) => ({
@@ -303,9 +340,13 @@ const updateEmployeeRole = () => {
           },
         ])
         .then((answer) => {
-          const query = "UPDATE employee SET role_id = ? WHERE id = ?";
+          const query = queries.updateEmployeeRole;
           db.query(query, [answer.role_id, answer.employee_id], (err, res) => {
-            if (err) throw err;
+            if (err) {
+              console.error('Error updating employee role:', err.message);
+              start();
+              return;
+            }
             console.log("Updated employee's role");
             start();
           });
