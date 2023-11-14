@@ -2,13 +2,23 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const consoleTable = require("console.table");
+require("dotenv").config();
 
 // Connect to database
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Emdbosmtl1123!",
-  database: "employees_db",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+// Error handling for database connection
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
+  }
+  console.log('Connected to the database');
 });
 
 // Function to start the application
@@ -26,13 +36,6 @@ const start = () => {
         "Add Role",
         "Add Employee",
         "Update Employee Role",
-        "Update Employee Manager",
-        "View All Employees By Manager",
-        "View All Employees By Department",
-        "Remove Department",
-        "Remove Role",
-        "Remove Employee",
-        "Total Utilized Salary Budget of a Department",
         "Exit",
       ],
     })
